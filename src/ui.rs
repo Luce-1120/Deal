@@ -8,19 +8,6 @@ use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, BorderType, Borders, Clear, Paragraph};
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
-pub const HUES: [(u8, u8, u8); 10] = [
-    (137, 180, 250),
-    (137, 180, 250),
-    (137, 180, 250),
-    (137, 180, 250),
-    (137, 180, 250),
-    (137, 180, 250),
-    (137, 180, 250),
-    (137, 180, 250),
-    (137, 180, 250),
-    (137, 180, 250),
-];
-
 pub struct Skin {
     pub ink: Color,
     pub soft: Color,
@@ -52,20 +39,16 @@ pub fn skin() -> Skin {
         };
     }
 
-    let mut tint = [Color::Reset; 10];
-    for (i, hue) in HUES.iter().enumerate() {
-        tint[i] = Color::Rgb(hue.0, hue.1, hue.2);
-    }
-
+    let glow = Color::Rgb(137, 180, 250);
     Skin {
         ink: Color::Rgb(205, 214, 244),
         soft: Color::Rgb(147, 153, 178),
         edge: Color::Rgb(69, 71, 90),
-        glow: Color::Rgb(137, 180, 250),
+        glow,
         plus: Color::Rgb(166, 227, 161),
         minus: Color::Rgb(243, 139, 168),
         seat: Color::Rgb(45, 52, 74),
-        tint,
+        tint: [glow; 10],
     }
 }
 

@@ -1,17 +1,5 @@
 use anyhow::{Context, Result};
-use std::path::PathBuf;
-
-pub struct Cleaner {
-    pub dir: Option<PathBuf>,
-}
-
-impl Drop for Cleaner {
-    fn drop(&mut self) {
-        if let Some(path) = &self.dir {
-            let _ = std::fs::remove_dir_all(path);
-        }
-    }
-}
+use std::path::{Path, PathBuf};
 
 pub fn store() -> Result<PathBuf> {
     let base = dirs::data_local_dir()
@@ -22,12 +10,16 @@ pub fn store() -> Result<PathBuf> {
     Ok(path)
 }
 
+pub fn init_env(path: &Path) {
+    unsafe {
+        std::env::set_var("TREE_SITTER_LANGUAGE_PACK_CACHE", path);
+        std::env::set_var("TSLP_CACHE_DIR", path);
+    }
+}
+
 pub fn add(langs: &[String]) -> Result<()> {
     let target = store()?;
-    unsafe {
-        std::env::set_var("TREE_SITTER_LANGUAGE_PACK_CACHE", &target);
-        std::env::set_var("TSLP_CACHE_DIR", &target);
-    }
+    init_env(&target);
     for lang in langs {
         let tag = lang.trim().to_lowercase();
         match tree_sitter_language_pack::get_language(&tag) {

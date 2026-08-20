@@ -8,7 +8,7 @@ mod ui;
 
 use anyhow::{Context, Result};
 use app::{drive, App};
-use clean::{add, remove, store, Cleaner};
+use clean::{add, init_env, remove, store};
 use cli::{logo, usage, Action, Cli};
 use git::harvest;
 use gix::bstr::ByteSlice;
@@ -50,23 +50,8 @@ fn main() {
 }
 
 fn run(target: Option<&Path>) -> Result<()> {
-    let temp = tempfile::tempdir().ok();
-    let cleaner = Cleaner {
-        dir: temp.as_ref().map(|d| d.path().to_path_buf()),
-    };
-    if let Some(t) = &temp {
-        if let Ok(saved) = store() {
-            if let Ok(entries) = std::fs::read_dir(&saved) {
-                for entry in entries.flatten() {
-                    let dest = t.path().join(entry.file_name());
-                    let _ = std::fs::copy(entry.path(), dest);
-                }
-            }
-        }
-        unsafe {
-            std::env::set_var("TREE_SITTER_LANGUAGE_PACK_CACHE", t.path());
-            std::env::set_var("TSLP_CACHE_DIR", t.path());
-        }
+    if let Ok(saved) = store() {
+        init_env(&saved);
     }
 
     let root = target.map(Path::to_path_buf).unwrap_or_else(|| PathBuf::from("."));
@@ -124,7 +109,6 @@ fn run(target: Option<&Path>) -> Result<()> {
 
     let outcome = drive(&mut terminal, &mut app, &repo);
     let _ = ratatui::try_restore();
-    drop(cleaner);
     outcome?;
 
     if let Some(report) = &app.done {

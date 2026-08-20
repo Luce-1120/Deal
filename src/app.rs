@@ -3,7 +3,7 @@ use crate::model::{Batch, Bucket, Doc, Eol, Fate, Focus, Ledger, Mode, Node, Rep
 use crate::syntax::Guard;
 use crate::ui::{paint, skin, Skin};
 use anyhow::{bail, Context, Result};
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use gix::ObjectId;
 use ratatui::DefaultTerminal;
 use std::collections::{BTreeMap, BTreeSet};
@@ -777,7 +777,15 @@ pub fn drive(terminal: &mut DefaultTerminal, app: &mut App, repo: &gix::Reposito
             .context("terminal render failed")?;
 
         match event::read().context("terminal input read failed")? {
-            Event::Key(key) if key.kind == KeyEventKind::Press => app.key(key),
+            Event::Key(key) if key.kind == KeyEventKind::Press => {
+                if key.modifiers.contains(KeyModifiers::CONTROL)
+                    && (key.code == KeyCode::Char('c') || key.code == KeyCode::Char('C'))
+                {
+                    app.quit = true;
+                    break;
+                }
+                app.key(key);
+            }
             _ => {}
         }
 
