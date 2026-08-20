@@ -31,5 +31,4 @@ path = "src/main.rs"
 opt-level = 3
 lto = "fat"
 codegen-units = 1
-panic = "abort"
-strip = "debuginfo"
+strip = true
